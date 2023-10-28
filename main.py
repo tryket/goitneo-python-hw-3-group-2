@@ -1,5 +1,6 @@
 import pickle
 import re
+from datetime import date, timedelta
 
 file_name = 'address_book.pkl'
 
@@ -24,8 +25,11 @@ class AddressBook:
         except FileNotFoundError:
             self.contacts = {}
 
+    def is_valid_phone(self, phone):
+        return re.match(r"^\d{10}$", phone)
+
     def add_contact(self, name, phone):
-        if re.match(r"^\d{10}$", phone):
+        if self.is_valid_phone(phone):
             self.contacts[name] = phone
             print("Contact added.")
         else:
@@ -33,7 +37,7 @@ class AddressBook:
 
     def change_contact(self, name, new_phone):
         if name in self.contacts:
-            if re.match(r"^\d{10}$", new_phone):
+            if self.is_valid_phone(new_phone):
                 self.contacts[name] = new_phone
                 print("Contact updated.")
             else:
@@ -48,7 +52,7 @@ class AddressBook:
             print("Contact not found.")
 
     def show_all(self):
-        if len(self.contacts) > 0:
+        if self.contacts:
             for name, phone in self.contacts.items():
                 print(f"{name}: {phone}")
         else:
@@ -66,15 +70,14 @@ class AddressBook:
             print("Contact not found.")
 
     def get_birthdays_per_week(self):
-        import datetime
-        today = datetime.date.today()
-        next_week = today + datetime.timedelta(days=7)
+        today = date.today()
+        next_week = today + timedelta(days=7)
         upcoming_birthdays = []
         for name, contact_info in self.contacts.items():
             _, birthday = contact_info
             if birthday:
                 day, month, _ = map(int, birthday.split('.'))
-                if today <= datetime.date(today.year, month, day) <= next_week:
+                if today <= date(today.year, month, day) <= next_week:
                     upcoming_birthdays.append((name, birthday))
         return upcoming_birthdays
 
@@ -88,7 +91,7 @@ def main():
         user_input = input("Enter a command: ")
         command, args = parse_input(user_input)
 
-        if command in ["close", "exit", "q"]:
+        if command in ["close", "exit"]:
             print("Good bye!")
             book.save_to_file(file_name)
             break
